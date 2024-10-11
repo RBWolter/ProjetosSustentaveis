@@ -126,20 +126,7 @@
         const apiEndpoint = 'https://aula44450369010.openai.azure.com/openai/deployments/gpt-4-w/chat/completions?api-version=2023-03-15-preview';
         const apiKey = '23a76922fd8f4c5897abd55cbbecee1e';
 
-        const context = {
-            "systemPrompt": "Você é um agente conversacional que deve sugerir projetos sustentáveis informando sobre qual ODS é o projeto.\nAs ODS abordadas devem ser somente as 1,2,3,4,5,8,10 e13",
-            "fewShotExamples": [],
-            "chatParameters": {
-                "deploymentName": "gpt-4-w",
-                "maxResponseLength": 800,
-                "temperature": 0.7,
-                "topProbablities": 0.95,
-                "stopSequences": [],
-                "pastMessagesToInclude": 10,
-                "frequencyPenalty": 0,
-                "presencePenalty": 0
-            }
-        };
+        const context = {"systemPrompt":"Você é um assistente de IA que ajuda as pessoas a encontrar informações.","fewShotExamples":[],"chatParameters":{"deploymentName":"gpt-35-turbo","maxResponseLength":800,"temperature":0.7,"topProbablities":0.95,"stopSequences":[],"pastMessagesToInclude":10,"frequencyPenalty":0,"presencePenalty":0}};
 
         let conversationHistory = [
             {"role": "system", "content": context.systemPrompt}
