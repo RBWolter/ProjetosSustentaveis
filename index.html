@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat de Projetos Sustentáveis</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100%;
+        }
+        body {
+            background-image: url('https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/6.11.1/css/images/1x1/un.svg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .container {
+            display: flex;
+            height: 100%;
+        }
+        .chat-container {
+            flex: 2;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            margin: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .banner-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 20px;
+        }
+        .banner {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #user-input {
+            width: calc(100% - 70px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #send-button {
+            width: 60px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #e6f3ff;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #f0f0f0;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-container">
+            <h1>Chat de Projetos Sustentáveis</h1>
+            <div id="chat-messages"></div>
+            <div>
+                <input type="text" id="user-input" placeholder="Digite sua mensagem...">
+                <button id="send-button">Enviar</button>
+            </div>
+        </div>
+        <div class="banner-container">
+            <div class="banner">
+                <h2>ODS em Foco</h2>
+                <p>Nosso chat aborda as ODS 1, 2, 3, 4, 5, 8, 10 e 13. Descubra como você pode contribuir!</p>
+            </div>
+            <div class="banner">
+                <h2>Links Úteis</h2>
+                <ul>
+                    <li><a href="https://brasil.un.org/pt-br/sdgs" target="_blank">ODS Brasil</a></li>
+                    <li><a href="https://www.pactoglobal.org.br/" target="_blank">Pacto Global</a></li>
+                    <li><a href="https://www.wwf.org.br/" target="_blank">WWF Brasil</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+        const apiEndpoint = 'https://aula44450369010.openai.azure.com/openai/deployments/gpt-4-w/chat/completions?api-version=2023-03-15-preview';
+        const apiKey = '23a76922fd8f4c5897abd55cbbecee1e';
+
+        const context = {
+            "systemPrompt": "Você é um agente conversacional que deve sugerir projetos sustentáveis informando sobre qual ODS é o projeto.\nAs ODS abordadas devem ser somente as 1,2,3,4,5,8,10 e13",
+            "fewShotExamples": [],
+            "chatParameters": {
+                "deploymentName": "gpt-4-w",
+                "maxResponseLength": 800,
+                "temperature": 0.7,
+                "topProbablities": 0.95,
+                "stopSequences": [],
+                "pastMessagesToInclude": 10,
+                "frequencyPenalty": 0,
+                "presencePenalty": 0
+            }
+        };
+
+        let conversationHistory = [
+            {"role": "system", "content": context.systemPrompt}
+        ];
+
+        function addMessage(message, isUser) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
+            messageElement.textContent = message;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const userMessage = userInput.value.trim();
+            if (userMessage) {
+                addMessage(userMessage, true);
+                userInput.value = '';
+
+                conversationHistory.push({"role": "user", "content": userMessage});
+
+                try {
+                    const response = await fetch(apiEndpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            "messages": conversationHistory,
+                            "max_tokens": context.chatParameters.maxResponseLength,
+                            "temperature": context.chatParameters.temperature,
+                            "top_p": context.chatParameters.topProbablities
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Erro na resposta da API: ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    const botResponse = data.choices[0].message.content;
+
+                    addMessage(botResponse, false);
+                    conversationHistory.push({"role": "assistant", "content": botResponse});
+
+                    // Limitar o histórico de conversação
+                    if (conversationHistory.length > context.chatParameters.pastMessagesToInclude * 2 + 1) {
+                        conversationHistory = [
+                            conversationHistory[0],
+                            ...conversationHistory.slice(-context.chatParameters.pastMessagesToInclude * 2)
+                        ];
+                    }
+                } catch (error) {
+                    console.error('Erro ao enviar mensagem:', error);
+                    addMessage('Desculpe, ocorreu um erro ao processar sua mensagem.', false);
+                }
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Mensagem inicial do bot
+        addMessage('Olá! Estou aqui para sugerir projetos sustentáveis relacionados às ODS 1, 2, 3, 4, 5, 8, 10 e 13. Como posso ajudar você hoje?', false);
+    </script>
+</body>
+</html>
